@@ -1,0 +1,89 @@
+import javax.swing.*;
+import java.awt.*;
+import java.util.Random;
+
+public class SortingVisualizer extends JPanel {
+    private static final int WIDTH = 800;
+    private static final int HEIGHT = 400;
+    private static final int BAR_WIDTH = 10;
+    private static final int NUM_BARS = WIDTH / BAR_WIDTH;
+    
+    private int[] array;
+    private boolean sorting = false;
+
+    public SortingVisualizer() {
+        array = new int[NUM_BARS];
+        generateRandomArray();
+    }
+
+    // Generate an array with random values
+    private void generateRandomArray() {
+        Random rand = new Random();
+        for (int i = 0; i < array.length; i++) {
+            array[i] = rand.nextInt(HEIGHT);
+        }
+        repaint();
+    }
+
+    // Paint each bar in the array
+    @Override
+    protected void paintComponent(Graphics g) {
+        super.paintComponent(g);
+        for (int i = 0; i < array.length; i++) {
+            int barHeight = array[i];
+            g.setColor(Color.BLUE);
+            g.fillRect(i * BAR_WIDTH, HEIGHT - barHeight, BAR_WIDTH, barHeight);
+        }
+    }
+
+    // Bubble Sort with visualization
+    public void bubbleSort() {
+        sorting = true;
+        new Thread(() -> {
+            for (int i = 0; i < array.length - 1; i++) {
+                for (int j = 0; j < array.length - i - 1; j++) {
+                    if (array[j] > array[j + 1]) {
+                        // Swap the bars
+                        int temp = array[j];
+                        array[j] = array[j + 1];
+                        array[j + 1] = temp;
+                        repaint();
+                        try {
+                            Thread.sleep(10); // Pause to visualize
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            }
+            sorting = false;
+        }).start();
+    }
+
+    // Reset the array and stop any ongoing sorting
+    public void resetArray() {
+        if (!sorting) {
+            generateRandomArray();
+        }
+    }
+
+    public static void main(String[] args) {
+        JFrame frame = new JFrame("Sorting Visualizer");
+        SortingVisualizer visualizer = new SortingVisualizer();
+        frame.setSize(WIDTH, HEIGHT);
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.add(visualizer);
+        frame.setVisible(true);
+
+        JPanel controls = new JPanel();
+        JButton sortButton = new JButton("Start Sorting");
+        JButton resetButton = new JButton("Reset Array");
+
+        sortButton.addActionListener(e -> visualizer.bubbleSort());
+        resetButton.addActionListener(e -> visualizer.resetArray());
+
+        controls.add(sortButton);
+        controls.add(resetButton);
+        frame.add(controls, BorderLayout.SOUTH);
+    }
+}
